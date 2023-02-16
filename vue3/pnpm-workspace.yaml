@@ -1,0 +1,3 @@
+#包目录
+packages:
+  - 'packages/*' 
