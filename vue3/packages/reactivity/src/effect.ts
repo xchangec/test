@@ -7,7 +7,7 @@ function cleanupEffect(effect) {
     });
     effect.deps.length = 0
 }
-class ReactiveEffect {
+export class ReactiveEffect {
     //ts语法，新增active属性
     public active = true //effect默认为激活状态
     public parent = null
@@ -57,12 +57,7 @@ export function track(target, type, key) {
     if (!dep) {
         depsMap.set(key, dep = new Set())
     }
-    let shouldTrack = dep.has(activeEffect)
-    if (!shouldTrack) {
-        dep.add(activeEffect)
-        //收集当前activeEffect中属性的set集合，而set中存的是当前activeEffect，从而使 属性与activeEffect 建立双向的绑定
-        activeEffect.deps.push(dep)
-    }
+    trackEffects(dep)
 }
 //触发依赖
 export function trigger(target, type, key, value, oldValue) {
@@ -70,20 +65,31 @@ export function trigger(target, type, key, value, oldValue) {
     if (!depsMap) return
     let effects = depsMap.get(key)
     if (effects) {
-        //建立一个新的set对象，解决因set循环时(删除+添加)导致的死循环
-        // (删除指cleanupEffect,添加指副作用函数fn的执行，
-        // 当属性值修改触发trigger，trigger找到属性对应的effects循环执行，从而触发cleanupEffect清空effects，当再次收集依赖时会再为effects添加数据，从而导致死循环)
-        effects = new Set(effects)
-        effects && effects.forEach(effect => {
-            if (effect !== activeEffect) {
-                if (effect.scheduler) {//如果传了调度函数则执行调度函数，否则执行副作用函数更新视图
-                    // effect.scheduler(effect)//直接传递effect好像就不需要runner了，直接通过参数.run就可以了
-                    effect.scheduler()
-                } else {
-                    effect.run()
-                }
-            }
-        });
+        triggerEffects(effects)
     }
+}
 
+export function trackEffects(dep) {
+    let shouldTrack = dep.has(activeEffect)
+    if (!shouldTrack) {
+        dep.add(activeEffect)
+        //收集当前activeEffect中属性的set集合，而set中存的是当前activeEffect，从而使 属性与activeEffect 建立双向的绑定
+        activeEffect.deps.push(dep)
+    }
+}
+export function triggerEffects(effects) {
+    //建立一个新的set对象，解决因set循环时(删除+添加)导致的死循环
+    // (删除指cleanupEffect,添加指副作用函数fn的执行，
+    // 当属性值修改触发trigger，trigger找到属性对应的effects循环执行，从而触发cleanupEffect清空effects，当再次收集依赖时会再为effects添加数据，从而导致死循环)
+    effects = new Set(effects)
+    effects && effects.forEach(effect => {
+        if (effect !== activeEffect) {
+            if (effect.scheduler) {//如果传了调度函数则执行调度函数，否则执行副作用函数更新视图
+                // effect.scheduler(effect)//直接传递effect好像就不需要runner了，直接通过参数.run就可以了
+                effect.scheduler()
+            } else {
+                effect.run()
+            }
+        }
+    });
 }
