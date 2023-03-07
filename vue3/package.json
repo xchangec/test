@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "node scripts/dev.js reactivity -f global"
+    "dev": "node scripts/dev.js runtime-dom -f global"
   },
   "keywords": [],
   "author": "",
@@ -13,5 +13,8 @@
     "esbuild": "^0.16.17",
     "minimist": "^1.2.8",
     "typescript": "^4.9.5"
+  },
+  "dependencies": {
+    "vue": "^3.2.47"
   }
 }
