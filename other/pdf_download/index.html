@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="./static/js/axios.js"></script>
+</head>
+
+<body>
+    <div>
+        <input id="inp" type="file" />
+        <button onclick="openPdf()">查看pdf</button>
+    </div>
+    <script>
+        // inp.onchange = function (e) {
+        //     let file = e.target.files[0]
+        //     console.log(file);
+        //     let url = URL.createObjectURL(file)
+        //     let a = document.createElement('a')
+        //     a.target = '_blank'
+        //     a.href = url
+        //     a.click()
+        // }
+        let data
+        window.onload = function () {
+            axios({
+                method: 'get',
+                url: 'http://localhost:3000/file',
+                // responseType: 'blob'
+            }).then(res => {
+                console.log(res.data);
+                data = res
+            })
+        }
+        function openPdf() {
+            console.log(data);
+            if (!data) return
+            // let blob = new Blob([data.data], {
+            //     type: "application/pdf;charset-UTF-8",
+            // })
+            let str = 'data:application/pdf;base64,' + data.data
+            let blob = dataURItoBlob(str)
+            console.log(blob)
+            let link = document.createElement("a")
+            link.href = window.URL.createObjectURL(blob)
+            link.target = "_blank"
+            link.click()
+        }
+
+        // function dataURLtoBlob(dataurl, filename) {
+        //     let arr = dataurl.split(','),
+        //         mime = arr[0].match(/:(.*?);/)[1],
+        //         bstr = window.atob(arr[1]),
+        //         n = bstr.length,
+        //         u8arr = new Uint8Array(n);
+        //     while (n--) {
+        //         u8arr[n] = bstr.charCodeAt(n);
+        //     }
+        //     return new Blob([u8arr], { type: mime });
+        // }
+
+        function dataURItoBlob(dataURI) {
+            var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0]; // mime类型
+            var byteString = atob(dataURI.split(',')[1]); //base64 解码
+            var arrayBuffer = new ArrayBuffer(byteString.length); //创建缓冲数组
+            var intArray = new Uint8Array(arrayBuffer); //创建视图
+
+            for (var i = 0; i < byteString.length; i++) {
+                intArray[i] = byteString.charCodeAt(i);
+            }
+            return new Blob([intArray], { type: mimeString });
+        }
+
+    </script>
+</body>
+
+</html>
