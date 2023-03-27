@@ -1,5 +1,6 @@
 import { isArray, isString, ShapeFlags } from "@vue/shared";
 
+export const Text = Symbol()
 export const isVnode = (value) => {
   return !!(value && value.__v_isVnode);
 };
@@ -17,12 +18,12 @@ export function createVnode(type, props, children = null) {
   if (children) {
     let type = 0;
     if (isArray(children)) {
-      shapeFlag = ShapeFlags.ARRAY_CHILDREN;
+      type = ShapeFlags.ARRAY_CHILDREN;
     } else {
       children = String(children);
-      shapeFlag = ShapeFlags.TEXT_CHILDREN;
+      type = ShapeFlags.TEXT_CHILDREN;
     }
+    vnode.shapeFlag |= type; //vnode.shapeFlag = vnode.shapeFlag | type ,这里是位运算'|'，是新增权限的
   }
-  vnode.shapeFlag |= type; //vnode.shapeFlag = vnode.shapeFlag | type
   return vnode;
 }
