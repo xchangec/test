@@ -1,5 +1,5 @@
 import { isString, ShapeFlags } from "@vue/shared";
-import { createVnode, Text } from "./vnode";
+import { createVnode, isSameVnode, Text } from "./vnode";
 
 export function createRenderer(renderOptions) {
   let {
@@ -24,23 +24,44 @@ export function createRenderer(renderOptions) {
    */
   const patch = (n1, n2, container) => {
     if (n1 === n2) return;
+    if (n1 && !isSameVnode(n1, n2)) {//节点不相同，卸载旧节点再重新渲染
+      unmount(n1);
+      n1 = null;
+    }
     const { type, shapeFlag } = n2;
-    //初次渲染
+    switch (type) {
+      case Text:
+        //vnode为Text类型走Text类型的创建逻辑
+        processText(n1, n2, container);
+        break;
+      default:
+        if (shapeFlag & ShapeFlags.ELEMENT) {
+          //普通dom元素节点
+          processElement(n1, n2, container); //
+        }
+        break;
+    }
+  };
+
+  //创建并插入Text类型的节点
+  const processText = (n1, n2, container) => {
     if (n1 === null) {
-      switch (type) {
-        case Text:
-          //vnode为Text类型走Text类型的创建逻辑
-          processText(n1, n2, container);
-          break;
-        default:
-          if (shapeFlag & ShapeFlags.ELEMENT) {
-            //普通dom元素节点
-            mountElement(n2, container);
-          }
-          break;
-      }
+      hostInsert((n2.el = hostCreateText(n2.children)), container);
     } else {
-      //更新
+      let el = (n1.el = n2.el);
+      if (n1.children !== n2.children) {
+        hostSetText(el, n2.children);
+      }
+    }
+  };
+
+  //根据n1判断，创建或更新节点
+  const processElement = (n1, n2, container) => {
+    if (n1 === null) {//创建节点
+      mountElement(n2, container);
+    } else {
+      //更新节点
+      patchElement(n1, n2, container);
     }
   };
 
@@ -65,6 +86,33 @@ export function createRenderer(renderOptions) {
     hostInsert(el, container);
   };
 
+  //更新节点
+  const patchElement = (n1, n2, container) => {
+    const el = (n2.el = n1.el);
+    const oldProps = n1.props || {};
+    const newProps = n2.props || {};
+    patchProps(oldProps, newProps, el);
+    patchChildren(n1, n2, el);
+  };
+
+  //对比元素属性
+  const patchProps = (oldProps, newProps, el) => {
+    for (const key in newProps) {
+      hostPatchProp(el, key, oldProps[key], newProps[key]);
+    }
+    for (const key in oldProps) {
+      if (newProps[key] === null) {
+        hostPatchProp(el, key, oldProps[key], null);
+      }
+    }
+  };
+
+  //对比元素子节点
+  const patchChildren = (n1, n2, el) => {
+    const c1 = n1 && n1.children;
+    const c2 = n2 && n2.children;
+  };
+
   //创建为数组的子节点
   const mountChildren = (children, container) => {
     for (let i = 0; i < children.length; i++) {
@@ -80,13 +128,6 @@ export function createRenderer(renderOptions) {
       return createVnode(Text, null, child);
     }
     return child;
-  };
-
-  //创建并插入Text类型的节点
-  const processText = (n1, n2, container) => {
-    if (n1 === null) {
-      hostInsert((n2.el = hostCreateText(n2.children)), container);
-    }
   };
 
   //卸载节点

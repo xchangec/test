@@ -1,9 +1,17 @@
 import { isArray, isString, ShapeFlags } from "@vue/shared";
 
-export const Text = Symbol()
+export const Text = Symbol();
+
+//判断是否为vnode
 export const isVnode = (value) => {
   return !!(value && value.__v_isVnode);
 };
+
+//判断新旧是否为相同节点，
+export const isSameVnode = (n1, n2) => {
+  return (n1.type === n2.type) && (n1.key === n2.key);
+};
+
 export function createVnode(type, props, children = null) {
   let shapeFlag = isString(type) ? ShapeFlags.ELEMENT : 0;
   const vnode = {
