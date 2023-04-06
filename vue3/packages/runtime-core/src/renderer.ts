@@ -24,7 +24,8 @@ export function createRenderer(renderOptions) {
    */
   const patch = (n1, n2, container) => {
     if (n1 === n2) return;
-    if (n1 && !isSameVnode(n1, n2)) {//节点不相同，卸载旧节点再重新渲染
+    if (n1 && !isSameVnode(n1, n2)) {
+      //节点不相同，卸载旧节点再重新渲染
       unmount(n1);
       n1 = null;
     }
@@ -57,7 +58,8 @@ export function createRenderer(renderOptions) {
 
   //根据n1判断，创建或更新节点
   const processElement = (n1, n2, container) => {
-    if (n1 === null) {//创建节点
+    if (n1 === null) {
+      //创建节点
       mountElement(n2, container);
     } else {
       //更新节点
@@ -111,6 +113,27 @@ export function createRenderer(renderOptions) {
   const patchChildren = (n1, n2, el) => {
     const c1 = n1 && n1.children;
     const c2 = n2 && n2.children;
+    const prevShapeFlag = n1.shapeFlag;
+    const shapeFlag = n2.shapeFlag;
+    // 新    旧
+    // 文本  数组  删除数组子节点，新增文本子节点
+    // 文本  文本  更新文本
+    // 数组  文本  删除文本子节点，新增数组子节点
+    // 数组  数组  diff
+    // 空    数组  删除数组子节点
+    // 空    文本  清空文本子节点
+    if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
+      if (prevShapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+        unmountChildren(c1); // 文本-数组 删除子节点
+      }
+      hostSetElementText(el, c2); //文本-数组 文本-文本  新增或替换文本子节点
+    }
+  };
+
+  const unmountChildren = (children) => {
+    for (let i = 0; i < children.length; i++) {
+      unmount(children[i]);
+    }
   };
 
   //创建为数组的子节点
