@@ -1,4 +1,10 @@
-export function patchStyle(el, prevValue, nextValue) {
+/**
+ * 
+ * @param el 
+ * @param prevValue 
+ * @param nextValue 这里要传undefined不能传null，null为object类型，不会赋默认值
+ */
+export function patchStyle(el, prevValue, nextValue={}) {
     for (const key in nextValue) {
         el.style[key] = nextValue[key]
     }
