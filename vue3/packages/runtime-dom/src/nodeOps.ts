@@ -1,7 +1,7 @@
 export const nodeOps = {
     // 节点插入
     insert(child, parent, anchor = null) {
-        parent.insertBefore(child, anchor)
+        parent.insertBefore(child, anchor) //anchor为null，则将指定的节点添加到指定父节点的子节点列表的末尾。
     },
     // 节点删除
     remove(child) {

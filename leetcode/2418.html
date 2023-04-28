@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      const name = [
+        "IEO",
+        "Sgizfdfrims",
+        "QTASHKQ",
+        "Vk",
+        "RPJOFYZUBFSIYp",
+        "EPCFFt",
+        "VOYGWWNCf",
+        "WSpmqvb",
+      ];
+      const height = [17233, 32521, 14087, 42738, 46669, 65662, 43204, 8224];
+
+      console.log(sortPeople(name, height));
+
+      function sortPeople(names, heights) {
+        let hlen = heights.length;
+        for (let i = 0; i < hlen; i++) {
+          for (let j = i + 1; j < hlen; j++) {
+            if (heights[j] > heights[i]) {
+              let temp = heights[j];
+              heights[j] = heights[i];
+              heights[i] = temp;
+
+              temp = names[j];
+              names[j] = names[i];
+              names[i] = temp;
+            }
+          }
+        }
+        return names;
+      }
+
+      // 身高循环时排序了，但是姓名没有排序，用排序过的身高下标取未排序的姓名下班所以不对
+      // function sortPeople(names, heights) {
+      //   let hlen = heights.length;
+      //   for (let i = 0; i < hlen; i++) {
+      //     let ind = i;
+      //     let temp = 0;
+      //     for (let j = i + 1; j < hlen; j++) {
+      //       if (heights[j] > heights[i]) {
+      //         temp = heights[j];
+      //         heights[j] = heights[i];
+      //         heights[i] = temp;
+      //         ind = j;
+      //       }
+      //     }
+      //     if (ind != i) {
+      //       temp = names[i];
+      //       names[i] = names[ind];
+      //       names[ind] = temp;
+      //     }
+      //   }
+      //   return names;
+      // }
+    </script>
+  </body>
+</html>
