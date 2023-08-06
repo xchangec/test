@@ -1,14 +1,170 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
-</head>
-<body>
+  </head>
+  <body>
     <div>
-        123
-        test
+      <p>Vue</p>
+      <p>Template</p>
     </div>
-</body>
+  </body>
+  <script>
+    /* vue模板编译为渲染函数
+    *模板 --- parse(str) --- 模板AST --- transform(ast) --- JavaScript AST --- generate(JSAST) --- 渲染函数
+    */
+
+    // 状态机状态
+    const State = {
+      inital: 1, //初始化状态
+      tagOpen: 2, //标签开始状态
+      tagName: 3, //标签名称状态
+      text: 4, //文本状态
+      tagEnd: 5, //结束标签状态
+      tagEndName: 6, //结束标签名称状态
+    }
+    //判断是否字母
+    function isAlpha(char) {
+      return (char >= 'a' && char <= 'z') || (char >= 'A' && char <= 'z')
+    }
+    // 将模板字符串切割为Token返回
+    function tokenize(str) {
+      let currentState = State.inital
+      const chars = []
+      const tokens = []
+      while (str) {
+        const char = str[0]
+        switch (currentState) {
+          // 状态机处于初始状态
+          case State.inital:
+            if (char == '<') {
+              currentState = State.tagOpen
+              str = str.slice(1)
+            } else if (isAlpha(char)) {
+              currentState = State.text
+              chars.push(char)
+              str = str.slice(1)
+            }
+            break
+          // 状态机处于标签开始状态
+          case State.tagOpen:
+            if (isAlpha(char)) {
+              currentState = State.tagName
+              chars.push(char)
+              str = str.slice(1)
+            } else if (char == '/') {
+              currentState = State.tagEnd
+              str = str.slice(1)
+            }
+            break
+          //状态机处于标签名称状态
+          case State.tagName:
+            if (isAlpha(char)) {
+              chars.push(char)
+              str = str.slice(1)
+            } else if (char == '>') {
+              currentState = State.inital
+              tokens.push({
+                type: 'tag',
+                name: chars.join(''),
+              })
+              chars.length = 0
+              str = str.slice(1)
+            }
+            break
+          //状态机处于文本状态
+          case State.text:
+            if (isAlpha(char)) {
+              chars.push(char)
+              str = str.slice(1)
+            } else if (char == '<') {
+              currentState = State.tagOpen
+              tokens.push({
+                type: 'text',
+                content: chars.join(''),
+              })
+              chars.length = 0
+              str = str.slice(1)
+            }
+            break
+          //状态机处于结束标签状态
+          case State.tagEnd:
+            if (isAlpha(char)) {
+              currentState = State.tagEndName
+              chars.push(char)
+              str = str.slice(1)
+            }
+            break
+          //状态机处于结束标签名称状态
+          case State.tagEndName:
+            if (isAlpha(char)) {
+              chars.push(char)
+              str = str.slice(1)
+            } else if (char == '>') {
+              currentState = State.inital
+              tokens.push({
+                type: 'tagEnd',
+                name: chars.join(''),
+              })
+              chars.length = 0
+              str = str.slice(1)
+            }
+            break
+        }
+      }
+      return tokens
+    }
+    //接受模板作为参数
+    function parse(str) {
+      const tokens = tokenize(str)
+      console.log(tokens)
+      // 创建root根节点
+      const root = {
+        type: 'root',
+        children: [],
+      }
+      // 创建elementStack栈
+      const elementStack = [root]
+      // 循环扫描tokens，直到都被扫描完
+      while (tokens.length) {
+        // 取当前栈顶节点作为父节点patent
+        const parnet = elementStack[elementStack.length - 1]
+        // 当前扫描的token
+        const t = tokens[0]
+        switch (t.type) {
+          case 'tag':
+            // 如果是开始标签则创建Element类型的AST节点
+            const elementNode = {
+              type: 'Element',
+              tag: t.name,
+              children: [],
+            }
+            // 将其添加到父节点的children中
+            parnet.children.push(elementNode)
+            // 将当前节点压入栈
+            elementStack.push(elementNode)
+            break
+          case 'text':
+            const textNode = {
+              type: 'Text',
+              content: t.content,
+            }
+            parnet.children.push(textNode)
+            break
+          case 'tagEnd':
+            // 遇到结束标签将栈顶节点弹出
+            elementStack.pop()
+            break
+        }
+        // 消费已扫描过的token
+        tokens.shift()
+      }
+      return root
+    }
+
+    const ast = parse('<div><p>Vue</p><p>Template</p></div>')
+    console.log(ast)
+  </script>
 </html>
