@@ -12,9 +12,20 @@
     </div>
   </body>
   <script>
+    /**
+     * <div><p>Vue</p><p>Template</p></div>
+     *
+     * [{"type":"tag","name":"div"},{"type":"tag","name":"p"},{"type":"text","content":"Vue"},{"type":"tagEnd","name":"p"},{"type":"tag","name":"p"},{"type":"text","content":"Template"},{"type":"tagEnd","name":"p"},{"type":"tagEnd","name":"div"}]
+     *
+     * {"type":"Root","children":[{"type":"Element","tag":"div","children":[{"type":"Element","tag":"p","children":[{"type":"Text","content":"Vue"}]},{"type":"Element","tag":"p","children":[{"type":"Text","content":"Template"}]}]}]}
+     *
+     *
+     *
+     * function render(){ return h('div',[h('p','Vue'),h('p','Template')]) }
+     */
     /* vue模板编译为渲染函数
-    *模板 --- parse(str) --- 模板AST --- transform(ast) --- JavaScript AST --- generate(JSAST) --- 渲染函数
-    */
+     *模板 --- parse(str) --- 模板AST --- transform(ast) --- JavaScript AST --- generate(JSAST) --- 渲染函数
+     */
 
     // 状态机状态
     const State = {
@@ -119,10 +130,9 @@
     //接受模板作为参数
     function parse(str) {
       const tokens = tokenize(str)
-      console.log(tokens)
       // 创建root根节点
       const root = {
-        type: 'root',
+        type: 'Root',
         children: [],
       }
       // 创建elementStack栈
@@ -163,8 +173,142 @@
       }
       return root
     }
+    //打印AST节点信息
+    function dump(node, index = 0) {
+      const desc = node.type == 'Root' ? '' : node.type == 'Element' ? node.tag : node.content
+      //打印当前节点信息
+      console.log(`${'-'.repeat(index)}${node.type}: ${desc}`)
+      if (node.children && node.children.length > 0) {
+        node.children.forEach((n) => dump(n, index + 2))
+      }
+    }
+    // 创建Identifier节点
+    function createIdentifier(name) {
+      return {
+        type: 'Identifier',
+        name,
+      }
+    }
+    // 创建StringLiteral节点
+    function createStringLiteral(value) {
+      return {
+        type: 'StringLiteral',
+        value,
+      }
+    }
+    // 创建ArrayExpression节点
+    function createArrayExpression(elements) {
+      return {
+        type: 'ArrayExpression',
+        elements,
+      }
+    }
+    // 创建CallExpression节点
+    function createCallExpression(callee, arguments) {
+      return {
+        type: 'CallExpression',
+        callee: createIdentifier(callee),
+        arguments,
+      }
+    }
+    //处理Element标签
+    function transformElement(node) {
+      // if (node.type == 'Element' && node.tag == 'p') {
+      //   node.tag = 'h1'
+      // }
+      // console.log(node.tag+'进入');
+      // 退出节点的回调函数
+      return () => {
+        // 当这里执行时，当前转换节点的子节点一定处理完毕了
+        if (node.type !== 'Element') return
+        const callExp = createCallExpression('h', [createStringLiteral(node.tag)])
+        if (node.children.length == 1) {
+          callExp.arguments.push(node.children[0].jsNode)
+        } else {
+          callExp.arguments.push(createArrayExpression(node.children.map((c) => c.jsNode)))
+        }
+        node.jsNode = callExp
+        // console.log(node.tag+'退出');
+      }
+    }
+    //处理Text节点
+    function transformText(node, context) {
+      if (node.type !== 'Text') return
+      // 将JavaScript AST节点添加到node.jsNode
+      node.jsNode = createStringLiteral(node.content)
+
+      // if (node.type == 'Text') {
+      //   // 替换Text节点
+      //   // context.replaceNode({
+      //   //   type: 'Element',
+      //   //   tag: 'span',
+      //   // })
+      //   // 删除Text节点
+      //   // context.removerNode()
+      // }
+    }
+    //深度遍历ast
+    function traverseNode(ast, context) {
+      context.currentNode = ast
+      // 转换AST节点过程中，往往需要根据子节点的情况来决定如何对当前节点进行转换
+      // 退出阶段回调
+      const exitFns = []
+      const transform = context.nodeTransform
+      for (let i = 0; i < transform.length; i++) {
+        // 转换函数可以返回另外一个函数，该函数即为退出阶段的回调函数
+        const onExit = transform[i](context.currentNode, context)
+        if (onExit) {
+          exitFns.push(onExit)
+        }
+        // 转换函数可能会移除当前节点，所以转换函数执行后要检查当前节点是否已被移除
+        if (!context.currentNode) return
+      }
+      const children = context.currentNode.children
+      if (children) {
+        for (let i = 0; i < children.length; i++) {
+          // 递归调用traverseNode之前,将当前节点设为父节点
+          context.parent = context.currentNode
+          // 设置索引
+          context.childIndex = i
+          // 递归调用时将context透传
+          traverseNode(children[i], context)
+        }
+      }
+      // 节点处理的最后执行缓存到exitFns中的回调函数
+      // 这里要反序执行，例：A进入 -- B进入 -- B退出 -- A退出
+      let i = exitFns.length
+      while (i--) {
+        exitFns[i]()
+      }
+    }
+    // AST转换
+    function transform(ast) {
+      //context上下文
+      const context = {
+        // 当前正在转换的节点
+        currentNode: null,
+        // 当前节点在父节点的children中的位置
+        childIndex: 0,
+        // 当前正在转换节点的父节点
+        parent: null,
+        replaceNode(node) {
+          context.parent.children[context.childIndex] = node
+          // 更新当前节点
+          context.currentNode = node
+        },
+        removerNode() {
+          context.parent.children.splice(context.childIndex, 1)
+          // 当前节点已被删除，置空
+          context.currentNode = null
+        },
+        nodeTransform: [transformElement, transformText],
+      }
+      traverseNode(ast, context)
+      console.log(ast);
+      console.log(dump(ast))
+    }
 
     const ast = parse('<div><p>Vue</p><p>Template</p></div>')
-    console.log(ast)
+    transform(ast)
   </script>
 </html>
