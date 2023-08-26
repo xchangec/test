@@ -221,6 +221,7 @@
       return () => {
         // 当这里执行时，当前转换节点的子节点一定处理完毕了
         if (node.type !== 'Element') return
+        // Element类型创建h函数
         const callExp = createCallExpression('h', [createStringLiteral(node.tag)])
         if (node.children.length == 1) {
           callExp.arguments.push(node.children[0].jsNode)
@@ -246,6 +247,24 @@
       //   // 删除Text节点
       //   // context.removerNode()
       // }
+    }
+    // 处理Root节点
+    function transformRoot(node) {
+      if (node.type !== 'Root') return
+      return () => {
+        const vnodeJSAST = node.children[0].jsNode
+        node.jsNode = {
+          type: 'FunctionDecl',
+          id: { type: 'Identifier', name: 'render' },
+          params: [],
+          body: [
+            {
+              type: 'ReturnStatement',
+              return: vnodeJSAST,
+            },
+          ],
+        }
+      }
     }
     //深度遍历ast
     function traverseNode(ast, context) {
@@ -301,14 +320,129 @@
           // 当前节点已被删除，置空
           context.currentNode = null
         },
-        nodeTransform: [transformElement, transformText],
+        nodeTransform: [transformRoot, transformElement, transformText],
       }
       traverseNode(ast, context)
-      console.log(ast);
-      console.log(dump(ast))
+    }
+    // 处理参数，可用于数组[]和参数() ：实参是有可能为数组的 xxx,xxx,xxx
+    function genNodeList(nodes, context) {
+      const { push } = context
+      for (let i = 0; i < nodes.length; i++) {
+        const node = nodes[i]
+        genNode(node, context)
+        if (i < nodes.length - 1) {
+          push(',')
+        }
+      }
+    }
+    // 函数声明类型
+    function genFunctionDecl(node, context) {
+      const { push, indent, deIndent } = context
+      push(`function ${node.id.name}`)
+      push(`(`)
+      // 生成函数参数代码
+      genNodeList(node.params, context)
+      push(`) `)
+      push(`{`)
+      indent()
+      // 为函数体生成代码，递归调用genNode
+      node.body.forEach((n) => genNode(n, context))
+      deIndent()
+      push(`}`)
+    }
+    // 函数调用类型
+    function genCallExpression(node, context) {
+      const { push } = context
+      const { callee, arguments: args } = node
+      // 生成函数调用代码
+      push(`${callee.name}(`)
+      // 生成参数代码
+      genNodeList(node.arguments, context)
+      补全括号
+      push(`)`)
+    }
+    // 函数体内的return
+    function genReturnStatement(node, context) {
+      const { push } = context
+      // 追加return关键字和空格
+      push(`return `)
+      genNode(node.return, context)
+    }
+    // 字符串自变量类型
+    function genStringLiteral(node, context) {
+      const { push } = context
+      // 字符串自变量直接追加
+      push(`'${node.value}'`)
+    }
+    // 数组类型
+    function genArrayExpression(node, context) {
+      const { push } = context
+      push(`[`)
+      // 为数组元素生成代码
+      genNodeList(node.elements, context)
+      push(`]`)
+    }
+    function genNode(node, context) {
+      switch (node.type) {
+        case 'FunctionDecl':
+          genFunctionDecl(node, context)
+          break
+        case 'ReturnStatement':
+          genReturnStatement(node, context)
+          break
+        case 'CallExpression':
+          genCallExpression(node, context)
+          break
+        case 'StringLiteral':
+          genStringLiteral(node, context)
+          break
+        case 'ArrayExpression':
+          genArrayExpression(node, context)
+          break
+      }
+    }
+    //JavaScript AST 转 js函数
+    function generate(node) {
+      const context = {
+        // 最终生成的函数代码
+        code: '',
+        // 当前的缩进级别，初始为0
+        currentIndent: 0,
+        push(code) {
+          context.code += code
+        },
+        // 换行、缩进
+        newline() {
+          context.code += '\n' + `  `.repeat(context.currentIndent)
+        },
+        // 缩进
+        indent() {
+          context.currentIndent++
+          context.newline()
+        },
+        // 取消缩进
+        deIndent() {
+          context.currentIndent--
+          context.newline()
+        },
+      }
+      genNode(node, context)
+      return context.code
     }
 
-    const ast = parse('<div><p>Vue</p><p>Template</p></div>')
-    transform(ast)
+    // html字符串转换为render函数
+    function compile(template) {
+      // 模板ast
+      const ast = parse(template)
+      // 将模板AST转换为JavaScript AST
+      transform(ast)
+      console.log(ast)
+      console.log(dump(ast))
+      // 代码生成
+      const code = generate(ast.jsNode)
+      return code
+    }
+
+    console.log(compile('<div><p>Vue</p><p>Template</p></div>'))
   </script>
 </html>

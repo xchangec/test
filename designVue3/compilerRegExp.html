@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div>
+      <p>1</p>
+      <p>2</p>
+    </div>
+  </body>
+  <script>
+    // 自定义文本模式，作为一个状态表
+    const TextModes = {
+      DATA: 'DATA',
+      RCDATA: 'RCDATA',
+      RAWTEXT: 'RAWTEXT',
+      CDATA: 'CDATA',
+    }
+    // 解析器函数，接受模板作为参数
+    function parse(str) {
+      const context = {
+        source: str,
+        // 解析器当前文本模式，初始为DATA
+        mode: TextModes.DATA,
+        advanceBy(num) {
+          // 截取位置num后的模板内容，并替换当前模板内容
+          context.source = context.source.slice(num)
+        },
+        // 开始或结束标签可能存在无用的空白字符，如<div  >
+        advanceSpaces() {
+          // 匹配空白字符
+          const match = /^[\t\r\n\f ]+/.exec(context.source)
+          if (match) {
+            // 消费空白字符
+            context.advanceBy(match[0].length)
+          }
+        },
+      }
+      const nodes = parseChildren(context, [])
+      return {
+        type: 'Root',
+        children: nodes,
+      }
+    }
+    function parseChildren(context, ancestors) {
+      debugger
+      let nodes = []
+      const { source, mode } = context
+      while (!isEnd(context, ancestors)) {
+        let node
+        // 只有DATA模式和RCDATA模式才支持插值节点的解析
+        if (mode === TextModes.DATA || mode === TextModes.RCDATA) {
+          // 只有DATA模式才支持标签节点的解析
+          if (mode === TextModes.DATA && source[0] === '<') {
+            if (source[1] === '!') {
+              if (source.startsWith('<!--')) {
+                // 注释
+                node = parseComment(context)
+              } else if (source.startsWith('<![CDATA[')) {
+                // CDATA
+                node = parseCData(context, ancestors)
+              }
+            } else if (source[1] === '/') {
+              // 状态机遭遇了闭合标签，此时应该抛出错误，因为它缺少与之对应的开始标签
+              console.error('无效的结束标签')
+              continue
+            } else if (/[a-z]/i.test(source[1])) {
+              // 标签
+              node = parseElement(context, ancestors)
+            }
+          } else if (source.startsWith('\{\{')) {
+            // 解析插值
+            node = parseInterpolation(context)
+          }
+        }
+        // node不存在，说明处于其他模式，即非DATA且非RCDATA
+        // 这时一切内容都作为文本节点处理
+        if (!node) {
+          // 解析文本节点
+          node = parseText(context)
+        }
+        nodes.push(node)
+      }
+      return nodes
+    }
+    function isEnd(context, ancestors) {
+      // 当模板内容解析完毕后停止
+      if (!context.source) return true
+      // 与父级节点栈内所有节点做比较
+      for (let i = ancestors.length - 1; i >= 0; i--) {
+        // 只要栈中存在与当前结束标签同名的节点，就停止状态机
+        if (context.source.startsWith(`</${ancestors[i].tag}`)) return true
+      }
+    }
+    // 标签
+    function parseElement(context, ancestors) {
+      // 解析开始标签
+      const element = parseTag(context)
+      // 自闭合标签
+      if (element.isSelfClosing) return element
+      if (element.tag === 'textarea' || element.tag === 'title') {
+        context.mode = TextModes.RCDATA
+      } else if (/style|xmp|iframe|noembed|noframes|noscript/.test(element.tag)) {
+        context.mode = TextModes.RAWTEXT
+      } else {
+        context.mode = TextModes.DATA
+      }
+      ancestors.push(element)
+      element.children = parseChildren(context, ancestors)
+      ancestors.pop()
+      if (context.source.startsWith(`</${element.tag}`)) {
+        // 解析结束标签
+        parseTag(context, 'end')
+      } else {
+        console.error(`${element.tag} 标签缺少闭合标签`)
+      }
+      return element
+    }
+    function parseTag(context, type = 'start') {
+      const { advanceBy, advanceSpaces } = context
+      const match = type === 'start' ? /^<([a-z][^\t\r\n\f />]*)/i.exec(context.source) : /^<\/([a-z][^\t\r\n\f />]*)/i.exec(context.source)
+      const tag = match[1]
+      advanceBy(match[0].length)
+      advanceSpaces()
+      const isSelfClosing = context.source.startsWith('/>')
+      advanceBy(isSelfClosing ? 2 : 1)
+      return {
+        type: 'Element',
+        tag,
+        props: [],
+        children: [],
+        isSelfClosing,
+      }
+    }
+
+    // 解析文本节点
+    function parseText() {}
+    // 注释
+    function parseComment() {}
+    // CDATA
+    function parseCData() {}
+    // 解析插值
+    function parseInterpolation() {}
+
+    console.log(parse(`<div><p>111</p><p>222</p></div>`))
+  </script>
+</html>
