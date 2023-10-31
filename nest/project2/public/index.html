@@ -1,11 +1,74 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
-</head>
-<body>
-    123456444
-</body>
+    <script src="https://unpkg.com/axios@0.24.0/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/qs@6.10.2/dist/qs.js"></script>
+  </head>
+  <body>
+    <input type="file" id="file" multiple />
+    <script>
+      // url param
+      async function urlParam() {
+        const res = await axios.get('/api/person/1');
+        console.log(res);
+      }
+
+      // query
+      async function query() {
+        // const res = await axios.get('/api/person/find?name=123&age=456');
+        const res = await axios.get('/api/person/find', {
+          params: {
+            name: 'xc',
+            age: 3,
+          },
+        });
+        console.log(res);
+      }
+
+      // form urlencoded
+      async function formUrlEncoded() {
+        const res = await axios.post(
+          '/api/person',
+          Qs.stringify({
+            name: 'xc',
+            age: 3,
+          }),
+          {
+            headers: { 'content-type': 'application/x-www-form-urlencoded' },
+          },
+        );
+      }
+
+      // json
+      async function json() {
+        const res = await axios.post('/api/person', {
+          name: 'xc',
+          age: 3,
+        });
+      }
+
+      // formData
+      const file = document.querySelector('#file');
+      async function formData() {
+        const data = new FormData();
+        data.set('name', 'xc');
+        data.set('age', 3);
+        data.set('file', file.files[0]);
+        data.set('file2', file.files[1]);
+        const res = await axios.post('/api/person/file', data, {
+          headers: { 'content-type': 'multipart/form-data' },
+        });
+        console.log(res);
+      }
+
+      // urlParam();
+      // query();
+      // formUrlEncoded();
+      // json();
+      file.onchange = formData;
+    </script>
+  </body>
 </html>
