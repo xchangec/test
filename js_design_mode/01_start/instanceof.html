@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      //   const Book = function (id, bookname, price) {
+      //     this.id = id
+      //     this.bookname = bookname
+      //     this.price = price
+      //   }
+      //   // 没有用new关键字，导致this指向window
+      //   const book = Book(1, '设计模式', 100)
+      //   console.log(book) //undefined
+      //   console.log(window.id)
+      //   console.log(window.bookname)
+      //   console.log(window.price)
+
+      const Book = function (id, bookname, price) {
+        if (this instanceof Book) {
+          this.id = id
+          this.bookname = bookname
+          this.price = price
+        } else {
+          return new Book(id, bookname, price)
+        }
+      }
+      const book = Book(1, '设计模式', 100)
+      console.log(book)
+    </script>
+  </body>
+</html>
