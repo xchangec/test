@@ -59,23 +59,36 @@
       //   }
 
       var threeSum = function (nums) {
-        nums = nums.sort((a,b)=>a-b)
+        nums = nums.sort((a, b) => a - b)
         const len = nums.length
         const ans = []
         for (let i = 0; i < len - 2; i++) {
+          // 如果nums[i]和上一个数据相同则跳过，避免数据重复
+          if (nums[i] === nums[i - 1]) continue
+          // nums[k]必定大于等于 i+1,i+2, 执行结束
+          if (nums[i] + nums[i + 1] + nums[i + 2] > 0) break
+          // 最小数据加上最大的两个数据小于0则跳过
+          if (nums[i] + nums[-2] + nums[-1] < 0) continue
           let j = i + 1,
             k = len - 1
-          if (nums[i] === nums[j]) continue
           while (j < k) {
             const s = nums[i] + nums[j] + nums[k]
+            // 大于0表示nums[k]太大了，右指针向左移
             if (s > 0) {
               k--
             } else if (s < 0) {
+              // 小于0表示nums[j]太小了，左指针向右移
               j++
             } else {
               ans.push([nums[i], nums[j], nums[k]])
               j++
+              while (nums[j] === nums[j - 1]) {
+                j++
+              }
               k--
+              while (nums[k] === nums[k + 1]) {
+                k--
+              }
             }
           }
         }
