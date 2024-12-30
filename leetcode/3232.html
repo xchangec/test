@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Document</title>
+</head>
+
+<body>
+  <script>
+    var canAliceWin = function (nums) {
+      let a = 0, b = 0
+      nums.sort((a, b) => a - b)
+      for (let i = 0; i < nums.length; i++) {
+        if (nums[i] < 10) {
+          a += nums[i]
+        } else {
+          b += nums[i]
+        }
+      }
+      return a > b
+    };
+    console.log(canAliceWin([5,5,5,25]))
+  </script>
+</body>
+
+</html>

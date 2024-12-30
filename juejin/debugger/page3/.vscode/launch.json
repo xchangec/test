@@ -1,0 +1,13 @@
+{
+    "configurations": [
+        {
+            "name": "Launch Chrome",
+            "request": "launch",
+            // "port": 9222,
+            "type": "chrome",
+            "runtimeExecutable": "canary",
+            "url": "http://localhost:3000/",
+            "webRoot": "${workspaceFolder}"
+        }
+    ]
+}
