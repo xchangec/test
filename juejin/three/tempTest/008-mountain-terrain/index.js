@@ -11,7 +11,7 @@ const width = window.innerWidth;
 const height = window.innerHeight;
 const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000);
 
-const geometry = new THREE.PlaneGeometry(200, 200, 30, 30);
+const geometry = new THREE.PlaneGeometry(400, 400, 60, 60);
 const noise2D = createNoise2D();
 console.log(geometry);
 const positions = geometry.attributes.position;
