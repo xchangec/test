@@ -1,4 +1,6 @@
 */node_modules
-other/*/node_modules
+*/**/node_modules
+AI/**/.env
 c/**/*.exe
+other/*/node_modules
 .vscode
