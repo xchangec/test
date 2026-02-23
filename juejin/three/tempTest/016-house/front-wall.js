@@ -24,8 +24,17 @@ shape.holes.push(path1);
 const geometry = new THREE.ExtrudeGeometry(shape, {
   depth: 4,
 });
+
+const loader = new THREE.TextureLoader();
+const texture = loader.load("./chartlet/zhuan.webp");
+texture.colorSpace = THREE.SRGBColorSpace;
+texture.wrapS = THREE.RepeatWrapping;
+texture.repeat.x = 0.013;
+texture.repeat.y = 0.01;
 const material = new THREE.MeshLambertMaterial({
   color: new THREE.Color("lightgrey"),
+  map: texture,
+  aoMap: texture,
 });
 const mesh = new THREE.Mesh(geometry, material);
 export default mesh;

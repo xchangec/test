@@ -26,14 +26,19 @@ sideWall.position.set(-75, 5, 50);
 const sideWall2 = sideWall.clone();
 sideWall2.position.set(71, 5, 50);
 // 后墙
-backWall.position.set(-75, 5, -50);
+// backWall.position.set(0, 35, -49);
+backWall.translateY(35);
+backWall.translateZ(-48.5);
 // 前墙
 frontWall.position.set(-75, 5, 46);
 // 顶
+
+// 地板
+foundation.translateY(1);
 const params = {
   x: 0,
   y: 90,
-  z: 25,
+  z: 26,
   rotateX: -Math.PI / 4,
 };
 roof.rotateX(params.rotateX);
@@ -60,7 +65,9 @@ scene.add(directionalLight);
 const light = new THREE.AmbientLight(0xffffff, 2);
 scene.add(light);
 
-const renderer = new THREE.WebGLRenderer();
+const renderer = new THREE.WebGLRenderer({
+  logarithmicDepthBuffer:true
+});
 renderer.setSize(width, height);
 document.body.appendChild(renderer.domElement);
 

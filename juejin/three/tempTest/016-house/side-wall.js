@@ -18,8 +18,19 @@ shape.holes.push(
 const geometry = new THREE.ExtrudeGeometry(shape, {
   depth: 4,
 });
+
+const loader = new THREE.TextureLoader();
+const texture = loader.load("./chartlet/zhuan.webp");
+texture.colorSpace = THREE.SRGBColorSpace;
+texture.wrapS = THREE.RepeatWrapping;
+texture.repeat.x = 0.01;
+texture.repeat.y = 0.01;
 const material = new THREE.MeshLambertMaterial({
-  color: new THREE.Color("lightgrey"),
+  // color: new THREE.Color("lightgrey"),
+  map: texture,
+  aoMap: texture,
 });
 const mesh = new THREE.Mesh(geometry, material);
+
+console.log("侧墙uv坐标", mesh.geometry.attributes.uv.array);
 export default mesh;
