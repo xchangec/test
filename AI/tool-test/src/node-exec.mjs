@@ -13,6 +13,7 @@ const child = spawn(cmd, args, {
   cwd,
   stdio: "inherit",
   shell: true,
+  // shell: "powershell.exe",
 });
 
 let errorMsg = "";
