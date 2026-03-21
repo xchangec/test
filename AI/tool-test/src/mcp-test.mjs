@@ -15,12 +15,16 @@ const model = new ChatOpenAI({
 
 const mcpClient = new MultiServerMCPClient({
   mcpServers: {
-    "my-mcp-server": {
-      command: "node",
-      args: ["E:/project/test/AI/tool-test/src/my-mcp-server.mjs"],
-    },
     "amap-maps-streamableHTTP": {
       url: `https://mcp.amap.com/mcp?key=${process.env.AMAP_MAPS_API_KEY}`,
+    },
+    filesystem: {
+      command: "npx",
+      args: ["-y", "@modelcontextprotocol/server-filesystem", ...(process.env.ALLOWED_PATHS.split(",") || [])],
+    },
+    "chrome-devtools": {
+      command: "npx",
+      args: ["-y", "chrome-devtools-mcp@latest"],
     },
   },
 });
@@ -56,9 +60,17 @@ async function runAgentWithTools(query, maxIterations = 30) {
       const foundTool = tools.find((t) => t.name === toolCall.name);
       if (foundTool) {
         const toolResult = await foundTool.invoke(toolCall.args);
+        // console.log("toolResult:", toolResult);
+
+        let contentStr = "";
+        if (typeof toolResult === "string") {
+          contentStr = toolResult;
+        } else if (toolResult && toolResult.text) {
+          contentStr = toolResult.text;
+        }
         message.push(
           new ToolMessage({
-            content: toolResult,
+            content: contentStr,
             tool_call_id: toolCall.id,
           }),
         );
@@ -74,7 +86,9 @@ async function runAgentWithTools(query, maxIterations = 30) {
 // const res = await mcpClient.listResources();
 // console.log(res);
 
-const res = await runAgentWithTools("帮我查下徐州市中心的住宿，以及路线");
+const res = await runAgentWithTools(
+  "帮我查下徐州市苏宁广场附近的 3 个酒店，拿到酒店图片，打开浏览器，展示每个酒店的图片，每个 tab 一个 url 展示，并且在把那个页面标题改为酒店名",
+);
 console.log("res:", res);
 
 await mcpClient.close();

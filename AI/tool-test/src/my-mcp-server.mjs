@@ -62,7 +62,7 @@ server.registerResource(
         {
           uri: "docs://api",
           mimeType: "text/markdown",
-          text: `# MCP 工具 API 文档
+          text: `# MCP Server 使用指南
             ## query_user 工具
             - 作用：查询用户信息
             - 参数：userId（字符串，必填）
