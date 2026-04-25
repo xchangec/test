@@ -27,8 +27,14 @@ const enc = getEncoding("cl100k_base");
 const logTextSplitter = new RecursiveCharacterTextSplitter({
   chunkSize: 150,
   chunkOverlap: 20,
-  separator: ["\n", "。", ",", "，"],
-  lengthFunction: (text) => enc.encode(text).length,
+  separators: ["\n", "。", ",", "，"],
+  lengthFunction: (text) => {
+    console.log('='.repeat(10));
+    console.log(enc.encode(text).length);
+    console.log(text);
+    
+    return enc.encode(text).length
+  },
 });
 
 const splitDocuments = await logTextSplitter.splitDocuments([logDocument]);

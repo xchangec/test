@@ -30,3 +30,29 @@ splitDocuments.forEach((document) => {
   console.log("charater length:", document.pageContent.length);
   console.log("token length:", enc.encode(document.pageContent).length);
 });
+
+
+
+
+// CharacterTextSplitter = 按指定字符切长文本的基础工具
+// 核心配置：separator（分割符）、chunkSize（片段长度）、chunkOverlap（重叠长度）
+// 用法：初始化 → 传入文本 → 调用 splitText()/splitDocuments()
+// 适合普通纯文本快速分割，是 RAG 项目最常用的基础分割器
+
+// ✅ 适用
+
+//     普通纯文本（文章、笔记、对话、日志）
+//     按段落 / 句子 / 简单字符分割
+//     快速实现文本切块
+
+// ❌ 不适用
+
+//     Markdown、代码、JSON 等结构化文本（用 RecursiveCharacterTextSplitter）
+//     需要严格语义拆分的专业文档
+//     超长文本需要精细化切割的场景
+
+
+// CharacterTextSplitter 的规则：
+
+//     有分隔符 → 尽量拼，拼到上限再切断
+//     没分隔符又超长 → 不切断，直接保留原行（并报警告）

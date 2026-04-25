@@ -17,9 +17,9 @@ const logDocument = new Document({
 });
 
 const logTextSplitter = new RecursiveCharacterTextSplitter({
-  chunkSize: 200,
+  chunkSize: 150,
   chunkOverlap: 20,
-  separator: ["\n", "。", ",", "，"],
+  separators: ["\n", "。", ",", "，"],
 });
 
 const splitDocuments = await logTextSplitter.splitDocuments([logDocument]);
