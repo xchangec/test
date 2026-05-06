@@ -8,9 +8,12 @@ importers:
 
   .:
     dependencies:
+      '@langchain/core':
+        specifier: ^1.1.42
+        version: 1.1.42(@opentelemetry/api@1.9.1)(openai@6.34.0(ws@5.2.4)(zod@4.3.6))(ws@5.2.4)
       '@langchain/openai':
         specifier: ^1.4.4
-        version: 1.4.4(@langchain/core@1.1.41(@opentelemetry/api@1.9.1)(openai@6.34.0(ws@5.2.4)(zod@4.3.6))(ws@5.2.4))(ws@5.2.4)
+        version: 1.4.4(@langchain/core@1.1.42(@opentelemetry/api@1.9.1)(openai@6.34.0(ws@5.2.4)(zod@4.3.6))(ws@5.2.4))(ws@5.2.4)
       '@zilliz/milvus2-sdk-node':
         specifier: ^2.6.13
         version: 2.6.13
@@ -205,8 +208,8 @@ packages:
   '@js-sdsl/ordered-map@4.4.2':
     resolution: {integrity: sha512-iUKgm52T8HOE/makSxjqoWhe95ZJA1/G1sYsGev2JDKUSS14KAgg1LHb+Ba+IPow0xflbnSkOsZcO08C7w1gYw==}
 
-  '@langchain/core@1.1.41':
-    resolution: {integrity: sha512-KdoNEf1YVJ9jnOP+smq4O6teu63tE7GDUryOnZ2lVfooHLrHK/ECUadjOcDSCK/yk/xBw/8nexJ3ZNBMtKnstw==}
+  '@langchain/core@1.1.42':
+    resolution: {integrity: sha512-d0tN96BrwPMryYyWR9VfyAntSivn7EQrZCe5Kpxum93tcjTXbKKmKvItFec8AluQt88iTcmAJrahUZUNfzGwTA==}
     engines: {node: '>=20'}
 
   '@langchain/openai@1.4.4':
@@ -815,10 +818,6 @@ packages:
   utilium@1.10.1:
     resolution: {integrity: sha512-GQINDTb/ocyz4acQj3GXAe0wipYxws6L+9ouqaq10KlInTk9DGvW9TJd0pYa/Xu3cppNnZuB4T/sBuSXpcN2ng==}
 
-  uuid@11.1.0:
-    resolution: {integrity: sha512-0/A9rDy9P7cJ+8w1c9WD9V//9Wj15Ce2MPz8Ri6032usz+NfePxx5AcN3bN+r6ZL6jEo066/yNYB3tn4pQEx+A==}
-    hasBin: true
-
   varint@6.0.0:
     resolution: {integrity: sha512-cXEIW6cfr15lFv563k4GuVuW/fiwjknytD37jIOLSdSWuOI6WnO/oKwmP2FQTU2l01LP8/M5TSAJpzUaGe3uWg==}
 
@@ -1355,7 +1354,7 @@ snapshots:
 
   '@js-sdsl/ordered-map@4.4.2': {}
 
-  '@langchain/core@1.1.41(@opentelemetry/api@1.9.1)(openai@6.34.0(ws@5.2.4)(zod@4.3.6))(ws@5.2.4)':
+  '@langchain/core@1.1.42(@opentelemetry/api@1.9.1)(openai@6.34.0(ws@5.2.4)(zod@4.3.6))(ws@5.2.4)':
     dependencies:
       '@cfworker/json-schema': 4.1.1
       '@standard-schema/spec': 1.1.0
@@ -1366,7 +1365,6 @@ snapshots:
       langsmith: 0.5.25(@opentelemetry/api@1.9.1)(openai@6.34.0(ws@5.2.4)(zod@4.3.6))(ws@5.2.4)
       mustache: 4.2.0
       p-queue: 6.6.2
-      uuid: 11.1.0
       zod: 4.3.6
     transitivePeerDependencies:
       - '@opentelemetry/api'
@@ -1375,9 +1373,9 @@ snapshots:
       - openai
       - ws
 
-  '@langchain/openai@1.4.4(@langchain/core@1.1.41(@opentelemetry/api@1.9.1)(openai@6.34.0(ws@5.2.4)(zod@4.3.6))(ws@5.2.4))(ws@5.2.4)':
+  '@langchain/openai@1.4.4(@langchain/core@1.1.42(@opentelemetry/api@1.9.1)(openai@6.34.0(ws@5.2.4)(zod@4.3.6))(ws@5.2.4))(ws@5.2.4)':
     dependencies:
-      '@langchain/core': 1.1.41(@opentelemetry/api@1.9.1)(openai@6.34.0(ws@5.2.4)(zod@4.3.6))(ws@5.2.4)
+      '@langchain/core': 1.1.42(@opentelemetry/api@1.9.1)(openai@6.34.0(ws@5.2.4)(zod@4.3.6))(ws@5.2.4)
       js-tiktoken: 1.0.21
       openai: 6.34.0(ws@5.2.4)(zod@4.3.6)
       zod: 4.3.6
@@ -2060,8 +2058,6 @@ snapshots:
       eventemitter3: 5.0.4
     optionalDependencies:
       '@xterm/xterm': 5.5.0
-
-  uuid@11.1.0: {}
 
   varint@6.0.0: {}
 

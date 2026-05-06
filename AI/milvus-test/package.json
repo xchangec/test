@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@langchain/core": "^1.1.42",
     "@langchain/openai": "^1.4.4",
     "@zilliz/milvus2-sdk-node": "^2.6.13",
     "dotenv": "^17.4.2"
