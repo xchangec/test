@@ -111,7 +111,7 @@ async function answerEbookQuestion(question, k = 3) {
 
     // 5. 调用 LLM 生成回答
     console.log("\n【AI 回答】");
-    const response = await model.invoke(context);
+    const response = await model.invoke(prompt);
     console.log(response.content);
     console.log("\n");
 
