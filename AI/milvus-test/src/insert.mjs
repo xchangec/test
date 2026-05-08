@@ -91,7 +91,7 @@ async function main(params) {
         tags: ["学习", "技术"],
       },
       {
-        id: "diary_005",
+        id: "diary_006",
         content: "晚上做了一顿丰盛的晚餐，尝试了新菜谱。家人都说很好吃，很有成就感。",
         date: "2026-01-13",
         mood: "proud",
