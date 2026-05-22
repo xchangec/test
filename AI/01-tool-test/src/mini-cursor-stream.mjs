@@ -74,7 +74,7 @@ async function runAgentWithTools(query, maxIterations = 30) {
     console.log(chalk.bgBlue(`\n🚀 Agent 开始思考并生成流...\n`));
 
     for await (const chunk of rawStream) {
-      const toolsStr = JSON.stringify(chunk, null, 2);
+      const toolsStr = JSON.stringify({...chunk}, null, 2);
       logStream.write(`chunk:${"-".repeat(30)}\n`);
       logStream.write(toolsStr + "\n");
       logStream.write(`chunk:${"-".repeat(30)}\n`);
@@ -87,11 +87,12 @@ async function runAgentWithTools(query, maxIterations = 30) {
         // 解析失败说明 JSON 还不完整，忽略错误继续累积
       }
       if (parsedTools && parsedTools.length > 0) {
-        const toolsStr = JSON.stringify(parsedTools, null, 2);
-        logStream.write(`parsedTools:${"-".repeat(30)}\n`);
-        logStream.write(toolsStr + "\n");
-        logStream.write(`parsedTools:${"-".repeat(30)}\n`);
+        logStream.write(`parsedToolsStart:${"-".repeat(30)}\n`);
         for (const toolCall of parsedTools) {
+          const toolsStr = JSON.stringify({...toolCall}, null, 2);
+          logStream.write(`toolCall:${"-".repeat(30)}\n`);
+          logStream.write(toolsStr + "\n");
+          logStream.write(`toolCall:${"-".repeat(30)}\n`);
           if (toolCall.type === "write_file" && toolCall.args?.content) {
             const toolCallId = toolCall.id || toolCall.args.filePath || "default";
             const currentContent = String(toolCall.args.content);
@@ -111,6 +112,7 @@ async function runAgentWithTools(query, maxIterations = 30) {
             }
           }
         }
+        logStream.write(`parsedToolsEnd:${"-".repeat(30)}\n`);
       } else {
         // 当前还没有解析出工具调用时，如果有文本内容就直接输出
         if (chunk.content) {
