@@ -4,6 +4,21 @@ import { BookController } from './book.controller';
 
 @Module({
   controllers: [BookController],
-  providers: [BookService],
+  providers: [
+    BookService,
+    {
+      provide: 'BOOK_REPOSITORY',
+      useFactory() {
+        const books: { id: number; title: string }[] = [
+          { id: 1, title: 'Book 1' },
+          { id: 2, title: 'Book 2' },
+          { id: 3, title: 'Book 3' },
+        ];
+        return {
+          findAll: () => [...books],
+        };
+      },
+    },
+  ],
 })
 export class BookModule {}
