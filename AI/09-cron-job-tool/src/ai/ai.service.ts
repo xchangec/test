@@ -136,11 +136,17 @@ export class AiService {
       let fullAIMessage: AIMessageChunk | null = null;
 
       for await (const chunk of stream as AsyncIterable<AIMessageChunk>) {
-        log.appendLog(`chunk:`);
-        log.appendLog(chunk);
         fullAIMessage = fullAIMessage ? fullAIMessage.concat(chunk) : chunk;
+        log.appendLog(`chunk:`);
+        // log.appendLog(chunk);
+        log.appendLog(chunk.toDict());
         log.appendLog(`fullAIMessage:`);
-        log.appendLog(fullAIMessage);
+        // log.appendLog(fullAIMessage);
+        log.appendLog(fullAIMessage.toDict());
+
+        // if (chunk.additional_kwargs.reasoning_content) {
+        //   yield chunk.additional_kwargs.reasoning_content as string;
+        // }
         const hasToolCallChunk =
           !!fullAIMessage.tool_call_chunks &&
           fullAIMessage.tool_call_chunks.length > 0;
