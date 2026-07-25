@@ -15,23 +15,23 @@ import { ChatOpenAI } from '@langchain/openai';
 
 //   下面是最初版本的内联工具定义，只是保留做参考，不再实际使用。
 
-const database = {
-  users: {
-    '001': {
-      id: '001',
-      name: '张三',
-      email: 'zhangsan@example.com',
-      role: 'admin',
-    },
-    '002': { id: '002', name: '李四', email: 'lisi@example.com', role: 'user' },
-    '003': {
-      id: '003',
-      name: '王五',
-      email: 'wangwu@example.com',
-      role: 'user',
-    },
-  },
-};
+// const database = {
+//   users: {
+//     '001': {
+//       id: '001',
+//       name: '张三',
+//       email: 'zhangsan@example.com',
+//       role: 'admin',
+//     },
+//     '002': { id: '002', name: '李四', email: 'lisi@example.com', role: 'user' },
+//     '003': {
+//       id: '003',
+//       name: '王五',
+//       email: 'wangwu@example.com',
+//       role: 'user',
+//     },
+//   },
+// };
 
 const queryUserArgsSchema = z.object({
   userId: z.string().describe('用户 ID，例如: 001, 002, 003'),
@@ -41,30 +41,37 @@ type QueryUserArgs = {
   userId: string;
 };
 
-const queryUserTool = tool(
-  async ({ userId }: QueryUserArgs) => {
-    const user = database.users[userId];
+// const queryUserTool = tool(
+//   async ({ userId }: QueryUserArgs) => {
+//     const user = database.users[userId];
 
-    if (!user) {
-      return `用户 ID ${userId} 不存在。可用的 ID: 001, 002, 003`;
-    }
+//     if (!user) {
+//       return `用户 ID ${userId} 不存在。可用的 ID: 001, 002, 003`;
+//     }
 
-    return `用户信息：\n- ID: ${user.id}\n- 姓名: ${user.name}\n- 邮箱: ${user.email}\n- 角色: ${user.role}`;
-  },
-  {
-    name: 'query_user',
-    description:
-      '查询数据库中的用户信息。输入用户 ID，返回该用户的详细信息（姓名、邮箱、角色）。',
-    schema: queryUserArgsSchema,
-  },
-);
+//     return `用户信息：\n- ID: ${user.id}\n- 姓名: ${user.name}\n- 邮箱: ${user.email}\n- 角色: ${user.role}`;
+//   },
+//   {
+//     name: 'query_user',
+//     description:
+//       '查询数据库中的用户信息。输入用户 ID，返回该用户的详细信息（姓名、邮箱、角色）。',
+//     schema: queryUserArgsSchema,
+//   },
+// );
 
 @Injectable()
 export class AiService {
   private readonly modelWithTools: Runnable<BaseMessage[], AIMessage>;
 
-  constructor(@Inject('CHAT_MODEL') model: ChatOpenAI) {
-    this.modelWithTools = model.bindTools([queryUserTool]);
+  constructor(
+    @Inject('CHAT_MODEL') model: ChatOpenAI,
+    @Inject('QUERY_USER_TOOL') private readonly queryUserTool: any,
+    @Inject('SEND_MAIL_TOOL') private readonly sendMailTool: any,
+  ) {
+    this.modelWithTools = model.bindTools([
+      this.queryUserTool,
+      this.sendMailTool,
+    ]);
   }
 
   async runChain(query: string): Promise<string> {
@@ -98,10 +105,19 @@ export class AiService {
 
         if (toolName === 'query_user') {
           const args = queryUserArgsSchema.parse(toolCall.args);
-          const result = await queryUserTool.invoke(args);
+          const result = await this.queryUserTool.invoke(args);
 
           log.appendLog(`工具执行结果: ${result}`);
 
+          messages.push(
+            new ToolMessage({
+              tool_call_id: toolCallId,
+              name: toolName,
+              content: result,
+            }),
+          );
+        } else if (toolName === 'send_mail') {
+          const result = await this.sendMailTool.invoke(toolCall.args);
           messages.push(
             new ToolMessage({
               tool_call_id: toolCallId,
@@ -116,6 +132,8 @@ export class AiService {
 
   // 流式版本
   async *runChainStream(query: string): AsyncIterable<string> {
+    console.log('触发。。。');
+    
     const messages: BaseMessage[] = [
       new SystemMessage(
         '你是一个智能助手，可以在需要时调用工具，再用结果回答用户问题',
@@ -137,12 +155,12 @@ export class AiService {
 
       for await (const chunk of stream as AsyncIterable<AIMessageChunk>) {
         fullAIMessage = fullAIMessage ? fullAIMessage.concat(chunk) : chunk;
-        log.appendLog(`chunk:`);
-        // log.appendLog(chunk);
-        log.appendLog(chunk.toDict());
-        log.appendLog(`fullAIMessage:`);
-        // log.appendLog(fullAIMessage);
-        log.appendLog(fullAIMessage.toDict());
+        // log.appendLog(`chunk:`);
+        // // log.appendLog(chunk);
+        // log.appendLog(chunk.toDict());
+        // log.appendLog(`fullAIMessage:`);
+        // // log.appendLog(fullAIMessage);
+        // log.appendLog(fullAIMessage.toDict());
 
         // if (chunk.additional_kwargs.reasoning_content) {
         //   yield chunk.additional_kwargs.reasoning_content as string;
@@ -181,10 +199,19 @@ export class AiService {
 
         if (toolName === 'query_user') {
           const args = queryUserArgsSchema.parse(toolCall.args);
-          const result = await queryUserTool.invoke(args);
+          const result = await this.queryUserTool.invoke(args);
 
           log.appendLog(`工具执行结果: ${result}`);
 
+          messages.push(
+            new ToolMessage({
+              tool_call_id: toolCallId,
+              name: toolName,
+              content: result,
+            }),
+          );
+        } else if (toolName === 'send_mail') {
+          const result = await this.sendMailTool.invoke(toolCall.args);
           messages.push(
             new ToolMessage({
               tool_call_id: toolCallId,
