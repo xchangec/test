@@ -3,6 +3,7 @@ import { EntityManager } from 'typeorm';
 import { Job } from './entities/job.entity';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { CronJob } from 'cron';
+import { JobAgentService } from 'src/ai/job-agent.service';
 
 @Injectable()
 export class JobService implements OnApplicationBootstrap {
@@ -12,6 +13,8 @@ export class JobService implements OnApplicationBootstrap {
     private readonly entityManager: EntityManager;
     @Inject(SchedulerRegistry)
     private readonly schedulerRegistry: SchedulerRegistry;
+    @Inject(JobAgentService)
+    private readonly jobAgentService: JobAgentService;
 
     async onApplicationBootstrap() {
         this.logger.log('JobService.name:', JobService.name);
@@ -59,6 +62,13 @@ export class JobService implements OnApplicationBootstrap {
             const ref = setInterval(async () => {
                 this.logger.log(`run setInterval job ${job.id}, ${job.instruction}`)
                 await this.entityManager.update(Job, job.id, { lastRun: new Date() })
+
+                try {
+                    const result = await this.jobAgentService.runJob(job.instruction)
+                    this.logger.log(`[job ${job.id}] ${result}`);
+                } catch (error) {
+                    this.logger.error(`setInterval job ${job.id} agent execution error: ${(error as Error).message}`)
+                }
             }, job.everyMs);
             this.schedulerRegistry.addInterval(job.id, ref)
             return
@@ -74,10 +84,17 @@ export class JobService implements OnApplicationBootstrap {
             const ref = setTimeout(async () => {
                 this.logger.log(`run setTimeout job ${job.id}, ${job.instruction}`)
                 await this.entityManager.update(Job, job.id, { lastRun: new Date(), isEnabled: false })
+
+                try {
+                    const result = await this.jobAgentService.runJob(job.instruction)
+                    this.logger.log(`[job ${job.id}] ${result}`);
+                } catch (error) {
+                    this.logger.error(`setTimeout job ${job.id} agent execution error: ${(error as Error).message}`)
+                }
                 try {
                     this.schedulerRegistry.deleteTimeout(job.id)
                 } catch (error) {
-                    this.logger.error(`delete timeout job ${job.id} error`, error)
+                    this.logger.error(`delete setTimeout job ${job.id} agent error`)
                 }
             }, delay)
             this.schedulerRegistry.addTimeout(job.id, ref)
@@ -189,6 +206,12 @@ export class JobService implements OnApplicationBootstrap {
         return new CronJob(cronExpr, async () => {
             this.logger.log(`run cron job ${job.id}, ${job.instruction}`)
             await this.entityManager.update(Job, job.id, { lastRun: new Date() })
+            try {
+                const result = await this.jobAgentService.runJob(job.instruction)
+                this.logger.log(`[job ${job.id}] ${result}`);
+            } catch (error) {
+                this.logger.error(` cron job ${job.id} agent execution error: ${(error as Error).message}`)
+            }
         })
     }
 }
