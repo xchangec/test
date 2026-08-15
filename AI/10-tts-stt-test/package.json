@@ -8,5 +8,11 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "tencentcloud-sdk-nodejs": "^4.1.292",
+    "tencentcloud-sdk-nodejs-tts": "^4.1.237",
+    "ws": "^8.21.3"
+  }
 }
