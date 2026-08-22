@@ -117,9 +117,9 @@ export class AiService {
 
       for await (const chunk of stream as AsyncIterable<AIMessageChunk>) {
         fullAIMessage = fullAIMessage ? fullAIMessage.concat(chunk) : chunk;
-        // log.appendLog(`chunk:`);
-        // // log.appendLog(chunk);
-        // log.appendLog(chunk.toDict());
+        log.appendLog(`chunk:`);
+        // log.appendLog(chunk);
+        log.appendLog(chunk.toDict());
         // log.appendLog(`fullAIMessage:`);
         // // log.appendLog(fullAIMessage);
         // log.appendLog(fullAIMessage.toDict());
