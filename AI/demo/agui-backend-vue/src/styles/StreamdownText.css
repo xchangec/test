@@ -1,0 +1,47 @@
+/**
+ * Markdown 渲染容器样式（基于 agui-frontend 的 StreamdownText.css 改写）
+ * - 原版用 streamdown 渲染，HTML 结构是 [data-streamdown='xxx']
+ * - Vue 版用 markdown-it 渲染，HTML 结构是标准 <pre>/<table>/<blockquote> 等
+ * - 这里只保留容器级微调，具体元素样式见 index.css 中的全局规则
+ */
+
+.chat-streamdown {
+  text-align: left;
+  max-width: 100%;
+}
+
+.chat-streamdown__inner {
+  /* 与气泡内正文字号协调 */
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* 段落与表格/代码块之间的呼吸感 */
+.chat-streamdown__inner :where(p + table),
+.chat-streamdown__inner :where(p + pre),
+.chat-streamdown__inner :where(table + p),
+.chat-streamdown__inner :where(pre + p) {
+  margin-top: 0.5rem;
+}
+
+/* 流式光标（流式输出时显示在文本末尾的闪烁光标） */
+.chat-streamdown__cursor {
+  display: inline-block;
+  width: 8px;
+  height: 1.1em;
+  margin-left: 2px;
+  vertical-align: -0.18em;
+  background: var(--accent);
+  border-radius: 1px;
+  animation: chat-streamdown-cursor 1s step-end infinite;
+}
+
+@keyframes chat-streamdown-cursor {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}

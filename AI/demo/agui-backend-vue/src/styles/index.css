@@ -1,0 +1,188 @@
+/**
+ * 全局样式与 CSS 变量
+ * - 复刻自 agui-frontend 的 index.css，去掉了 Tailwind 相关指令
+ *   (@import 'tailwindcss' / @source / @variant / @theme)
+ *   因为 Vue 版本改用 Element Plus + 自定义 CSS，不再依赖 Tailwind
+ * - 保留所有 CSS 变量（--text / --bg / --accent / shadcn 语义色等），
+ *   让 App.css 与 ToolPanels.css 可以无缝复用
+ * - 暗色模式通过 prefers-color-scheme 自动切换
+ */
+
+:root {
+  --text: #6b6375;
+  --text-h: #08060d;
+  --bg: #ffffff;
+  --border: #e5e4e7;
+  --code-bg: #f4f3ec;
+  --accent: #aa3bff;
+  --accent-bg: rgba(170, 59, 255, 0.12);
+  --accent-border: rgba(170, 59, 255, 0.45);
+  --social-bg: rgba(244, 243, 236, 0.85);
+  --tool-panel-bg: #f3edff;
+  --tool-panel-bg-2: #ebe4ff;
+  /* 发送邮件工具卡：青绿系，与紫色联网搜索区分 */
+  --tool-mail-bg: #ecfdf5;
+  --tool-mail-bg-2: #d1fae5;
+  --tool-mail-accent: #0d9488;
+
+  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, Consolas, monospace;
+
+  /* shadcn 语义色（部分组件可能用到，保留兼容） */
+  --background: var(--bg);
+  --foreground: var(--text-h);
+  --card: var(--bg);
+  --card-foreground: var(--text-h);
+  --muted: var(--social-bg);
+  --muted-foreground: var(--text);
+  --input: var(--border);
+  --primary: var(--accent);
+  --primary-foreground: #ffffff;
+  --sidebar: #f4f4f6;
+  --sidebar-foreground: var(--text-h);
+  --radius: 0.625rem;
+
+  font: 18px/145% var(--sans);
+  letter-spacing: 0.18px;
+  color-scheme: light dark;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  @media (max-width: 1024px) {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #9ca3af;
+    --text-h: #f3f4f6;
+    --bg: #16171d;
+    --border: #2e303a;
+    --code-bg: #1f2028;
+    --accent: #c084fc;
+    --accent-bg: rgba(192, 132, 252, 0.15);
+    --accent-border: rgba(192, 132, 252, 0.45);
+    --social-bg: rgba(47, 48, 58, 0.65);
+    --tool-panel-bg: #221a33;
+    --tool-panel-bg-2: #1a1428;
+    --tool-mail-bg: #0f2722;
+    --tool-mail-bg-2: #134e4a;
+    --tool-mail-accent: #2dd4bf;
+    --sidebar: #27272f;
+    --sidebar-foreground: var(--text-h);
+    --primary-foreground: #16171d;
+  }
+}
+
+#app {
+  width: 100%;
+  max-width: 1126px;
+  margin: 0 auto;
+  text-align: center;
+  border-inline: 1px solid var(--border);
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+h1 {
+  font-family: var(--heading);
+  font-weight: 500;
+  color: var(--text-h);
+}
+
+p {
+  margin: 0;
+}
+
+code {
+  font-family: var(--mono);
+}
+
+/* 行内 `code`（段落/列表等），勿作用于 highlight.js 的 fenced 代码块 */
+p code,
+li code,
+td code,
+th code,
+h1 code,
+h2 code,
+h3 code,
+blockquote code {
+  display: inline-flex;
+  align-items: baseline;
+  border-radius: 4px;
+  color: var(--text-h);
+  font-size: 0.92em;
+  line-height: 135%;
+  padding: 2px 6px;
+  background: var(--code-bg);
+}
+
+/* 代码块：必须块级 + 保留换行，覆盖上面任何误匹配 */
+pre code,
+pre code.hljs {
+  display: block;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-x: auto;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+}
+
+/* highlight.js 代码块容器：固定暗色背景，配合 github-dark 主题
+   （亮暗模式下都是暗底亮字，类似 VS Code Dark，两边可读） */
+.chat-streamdown__inner pre {
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: #1f2028;
+  overflow-x: auto;
+  margin: 0.5em 0;
+}
+
+/* 表格基础样式（markdown-it 输出的 table 没有内置样式） */
+.chat-streamdown__inner table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.5em 0;
+}
+
+.chat-streamdown__inner th,
+.chat-streamdown__inner td {
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  text-align: left;
+}
+
+.chat-streamdown__inner blockquote {
+  border-left: 3px solid var(--accent-border);
+  margin: 0.5em 0;
+  padding: 0.2em 0.9em;
+  color: var(--text);
+  background: var(--accent-bg);
+  border-radius: 0 6px 6px 0;
+}
+
+.chat-streamdown__inner ul,
+.chat-streamdown__inner ol {
+  margin: 0.5em 0;
+  padding-left: 1.5em;
+}
+
+.chat-streamdown__inner a {
+  color: var(--accent);
+}
