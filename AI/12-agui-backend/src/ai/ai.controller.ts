@@ -112,6 +112,17 @@ export class AiController {
      *     ]
      *   }
      */
+    // {
+    //     "messages": [
+    //         {
+    //             "id": "1", 
+    //             "role": "user",
+    //             "parts": [
+    //                 { "type": "text", "text": "北京今天的天气"}
+    //             ]
+    //         }
+    //     ]
+    // }
     @Post('chat')
     async postChat(
         /**
