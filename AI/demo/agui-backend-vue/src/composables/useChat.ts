@@ -128,6 +128,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         const { done, value } = await reader.read()
         if (done) break
         buffer += decoder.decode(value, { stream: true })
+        console.log('buffer:', buffer);
 
         // 按换行切分，逐行处理（SSE 每个事件占一行）
         let newlineIdx: number
@@ -155,6 +156,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             continue
           }
 
+          console.log('event:', event);
           handleStreamEvent(event, {
             getAssistant: () => assistantMessage,
             setAssistant: (m) => (assistantMessage = m),
