@@ -33,10 +33,12 @@ const showTransfer = () => ({
  * 恢复时 interrupt(...) 这一行的结果 text 就是 resume 传来的值，并写入 userInput。
  */
 const waitConfirm = (state) => {
+  console.log('开始等待确认：');
   const text = interrupt({
     hint: "终端里输入「确认」或备注后回车，图才会继续",
     actionSummary: state.actionSummary,
   });
+  console.log('确认内容是：', text);
   return { userInput: String(text) };
 };
 
@@ -60,7 +62,10 @@ const config = { configurable: { thread_id: "interrupt-demo" } };
 
 // 第一次调用：图会执行到 waitConfirm 处被 interrupt 暂停，返回值中的 __interrupt__ 携带暂停信息
 const paused = await graph.invoke({}, config);
+console.log('暂停状态：', paused);
 console.log("\n待你确认：", paused.__interrupt__?.[0]?.value);
+// console.log(graph);
+
 
 // 在终端里等用户输入一行内容
 const rl = createInterface({ input: process.stdin, output: process.stdout });
