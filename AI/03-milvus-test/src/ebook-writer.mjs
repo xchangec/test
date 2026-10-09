@@ -9,6 +9,7 @@ const CHUNK_SIZE = 500;
 const VECTOR_DIM = 1024;
 const COLLECTION_NAME = "ebook_collection";
 const EPUB_FILE = "./天龙八部.epub";
+const EMBEDDING_BATCH_SIZE = 20; // 每次 API 调用处理的文本数量，避免 DashScope 后端过载
 
 // 从文件名提取书名（去掉扩展名）
 const BOOK_NAME = parse(EPUB_FILE).name;
@@ -30,13 +31,6 @@ const client = new MilvusClient({
 // 2.加载电子书并分块
 // 3.向量化并存入
 
-/**
- * 获取文本的向量嵌入
- */
-async function getEmbedding(text) {
-  const result = await embeddings.embedQuery(text);
-  return result;
-}
 // 创建ebook表
 async function ensureCollection() {
   try {
@@ -130,26 +124,31 @@ async function loadAndProcessEPubStreaming(bookId) {
 
 /**
  * 将文档块批量插入到 Milvus（流式处理）
+ * 使用 embedDocuments 分批获取向量，避免高并发压垮 DashScope 后端
  */
 async function insertChunksBatch(chunks, bookId, chapterNum) {
   try {
     if (chunks.length === 0) {
       return 0;
     }
-    const insertData = await Promise.all(
-      chunks.map(async (chunk, chunkIndex) => {
-        const vector = await getEmbedding(chunk);
-        return {
-          id: `${bookId}_${chapterNum}_${chunkIndex}`,
-          book_id: bookId,
-          book_name: BOOK_NAME,
-          chapter_num: chapterNum,
-          index: chunkIndex,
-          content: chunk,
-          vector,
-        };
-      }),
-    );
+
+    // 将 chunks 分成多个小批次，逐批调用 embedDocuments
+    const vectors = [];
+    for (let i = 0; i < chunks.length; i += EMBEDDING_BATCH_SIZE) {
+      const batch = chunks.slice(i, i + EMBEDDING_BATCH_SIZE);
+      const batchVectors = await embeddings.embedDocuments(batch);
+      vectors.push(...batchVectors);
+    }
+
+    const insertData = chunks.map((chunk, chunkIndex) => ({
+      id: `${bookId}_${chapterNum}_${chunkIndex}`,
+      book_id: bookId,
+      book_name: BOOK_NAME,
+      chapter_num: chapterNum,
+      index: chunkIndex,
+      content: chunk,
+      vector: vectors[chunkIndex],
+    }));
 
     // 批量插入到 Milvus
     const insertResult = await client.insert({
@@ -158,7 +157,7 @@ async function insertChunksBatch(chunks, bookId, chapterNum) {
     });
     return Number(insertResult.insert_cnt) || 0;
   } catch (error) {
-    console.error(`插入章节 ${chapterNum} 的数据时出错:`, error.message);
+    console.error(`插入章节 ${chapterNum} 的数据时出错:`, error.message);
     console.error("错误详情:", error);
     throw error;
   }
