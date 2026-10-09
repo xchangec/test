@@ -86,7 +86,6 @@ const nodePath = [];
 let finalState = null;
 const stream = await app.stream(input, { streamMode: ["updates", "values"] });
 for await (const event of stream) {
-    console.log(event);
     const [mode, payload] = event;
     if (mode === "updates" && payload && typeof payload === "object") {
         nodePath.push(...Object.keys(payload));
